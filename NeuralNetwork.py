@@ -22,7 +22,7 @@ class Layer_Dense:
 
 class Activation_ReLU:
     def forward(self, inputs):
-        self.input = inputs
+        self.inputs = inputs
         self.output = np.maximum(0, inputs)
 
     def backward(self, dvalues): 
@@ -73,21 +73,47 @@ class Loss_CategoricalCrossentropy(Loss):
         self.dinputs = -y_true/dvalues
         self.dinputs = self.dinputs/samples
 
+class Activation_Softmax_Loss_CategoricalCrossentropy():
+    def __init__(self):
+        self.activation = Activation_Softmax()
+        self.loss = Loss_CategoricalCrossentropy()
+
+    def forward(self, inputs, y_true):
+        self.activation.forward(inputs)
+        self.output = self.activation.output
+        return self.loss.calculate(self.output, y_true)
+    
+    def backward(self, dvalues, y_true):
+        samples = len(dvalues)
+        if len(y_true.shape) == 2:
+            y_true = np.argmax(y_true, axis=1)
+        self.dinputs = dvalues.copy()
+        self.dinputs[range(samples), y_true] -= 1
+        self.dinputs = self.dinputs/samples
+
 X, y = spiral_data(samples=100, classes=3)
 dense1 =  Layer_Dense(2,3)
 activation1 = Activation_ReLU()
 dense2 = Layer_Dense(3, 3)
-activation2 = Activation_Softmax()
-loss_function = Loss_CategoricalCrossentropy()
+loss_activation = Activation_Softmax_Loss_CategoricalCrossentropy()
 dense1.forward(X)
 activation1.forward(dense1.output)
 dense2.forward(activation1.output)
-activation2.forward(dense2.output)
-print(activation2.output[:5])
-loss = loss_function.calculate(activation2.output, y)
+loss = loss_activation.forward(dense2.output, y)
+print(loss_activation.output[:5])
 print('loss:', loss)
-predictions= np.argmax(activation2.output, axis=1)
+predictions= np.argmax(loss_activation.output, axis=1)
 if len(y.shape) == 2:
     y = np.argmax(y, axis=1)
 accuracy = np.mean(predictions==y)
 print('acc:', accuracy)
+
+loss_activation.backward(loss_activation.output, y)
+dense2.backward(loss_activation.dinputs)
+activation1.backward(dense2.dinputs)
+dense1.backward(activation1.dinputs)
+
+print(dense1.dweights[:5])
+print(dense1.dbiases[:5])
+print(dense2.dweights[:5])
+print(dense2.dbiases[:5])
