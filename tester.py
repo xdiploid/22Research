@@ -204,14 +204,14 @@ class Optimizer_Adam:
         
         layer.weight_momentums = self.beta_1 * layer.weight_momentums + (1 - self.beta_1) * layer.dweights
         layer.bias_momentums = self.beta_1 * layer.bias_momentums + (1 - self.beta_1) * layer.dbiases
-        weight_momentums_corrected = layer.weight_momentums / (1 - self.beta_1 ** (self.iterationss +1))
-        bias_momentums_corrected = layer.bias_momentums/ (1 - self.beta ** (self.iterationns + 1))
+        weight_momentums_corrected = layer.weight_momentums / (1 - self.beta_1 ** (self.iterations +1))
+        bias_momentums_corrected = layer.bias_momentums/ (1 - self.beta_1 ** (self.iterations + 1))
         layer.weight_cache = self.beta_2 * layer.weight_cache + (1 - self.beta_2) * layer.dweights**2
         layer.bias_cache = self.beta_2 * layer.bias_cache + (1 - self.beta_2) * layer.dbiases**2
         weight_cache_corrected = layer.weight_cache / (1 - self.beta_2 ** (self.iterations + 1))
         bias_cache_corrected = layer.bias_cache / (1 - self.beta_2 ** (self.iterations + 1))
         layer.weights += -self.current_learning_rate * weight_momentums_corrected / (np.sqrt(weight_cache_corrected) + self.epsilon)
-        layer.biasess += -self.current_learning_rate * bias_momentums_corrected / (np.sqrt(bias_cache_corrected) + self.epsilon)
+        layer.biases += -self.current_learning_rate * bias_momentums_corrected / (np.sqrt(bias_cache_corrected) + self.epsilon)
 
     def post_update_params(self):
         self.iterations += 1
