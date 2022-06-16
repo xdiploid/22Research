@@ -574,23 +574,27 @@ def create_data_mnist(path):
     return X, y, X_test, y_test
 
 fashion_mnist_labels = {
-    0: 'T-shirt/top', 
-    1: 'Trouser', 
-    2: 'Pullover', 
-    3: 'Dress', 
-    4: 'Coat', 
-    5: 'Sandal', 
-    6: 'Shirt', 
-    7: 'Sneaker', 
-    8: 'Bag', 
-    9: 'Ankle boot'
+    0: 'Cat', 
+    1: 'Dog', 
 }
+#     2: 'Pullover', 
+#     3: 'Dress', 
+#     4: 'Coat', 
+#     5: 'Sandal', 
+#     6: 'Shirt', 
+#     7: 'Sneaker', 
+#     8: 'Bag', 
+#     9: 'Ankle boot'
+# }
            
-image_data = cv2.imread('pants.png', cv2.IMREAD_GRAYSCALE)
-image_data = cv2.resize(image_data, (28, 28))
-image_data = 255 - image_data
-image_data = (image_data.reshape(1, -1).astype(np.float32) - 127.5) / 127.5
-model = Model.load('fashion_mnist.model')
+try:            
+    image_data = cv2.imread('pants.png', cv2.IMREAD_GRAYSCALE)
+    image_data = cv2.resize(image_data, (28, 28))
+    image_data = 255 - image_data
+    image_data = (image_data.reshape(1, -1).astype(np.float32) - 127.5) / 127.5
+except Exception as e:
+    print(str(e))
+model = Model.load('C:\\Users\\Kiwi\\Downloads\\catsdogs\\PetImages')
 confidences = model.predict(image_data)
 predictions = model.output_layer_activation.predictions(confidences)
 prediction = fashion_mnist_labels[predictions[0]]
