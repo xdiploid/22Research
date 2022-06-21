@@ -64,4 +64,4 @@ pickle_out.close()
 
 pickle_in = open("X.pickle", "rb")
 X = pickle.load(pickle_in)
-X[1]
+ 
