@@ -36,8 +36,8 @@ def create_trainig_data():
                 training_data.append([new_array, class_num])
             except Exception as e:
                 pass
-            # plt.imshow(img_array, cmap="gray")
-            # plt.show()
+            plt.imshow(img_array, cmap="gray")
+            plt.show()
             
 create_trainig_data()
 print(len(training_data))
