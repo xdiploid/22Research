@@ -2,9 +2,8 @@ from zipfile import ZipFile
 import os
 import urllib
 import urllib.request
-import certifi
 import ssl
-URL = 'https://nnfs.io/datasets/fasion_mnist_images.zip'
+URL = 'https://nnfs.io/datasets/fashion_mnist_images.zip'
 FILE = 'fashion_mnist_images.zip'
 FOLDER = 'fashion_mnist_images'
 if not os.path.isfile(FILE):
