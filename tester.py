@@ -2,25 +2,9 @@ import numpy as np
 import nnfs
 import os
 import urllib
-<<<<<<< HEAD
-import urllib.request
-import ssl
-URL = 'https://nnfs.io/datasets/fashion_mnist_images.zip'
-FILE = 'fashion_mnist_images.zip'
-FOLDER = 'fashion_mnist_images'
-if not os.path.isfile(FILE):
-    print(f'Downloading {URL} and saving as {FILE}...')
-    urllib.request.urlretrieve(URL, FILE)
-print('Unzipping images...')
-with ZipFile(FILE) as zip_images:
-    zip_images.extractall(FOLDER)
-print('Done!')
-=======
 import pickle
 import copy
 import cv2
->>>>>>> 8d8e0f5af9113ee15d083ee94dd5af756bf46aa2
-
 
 nnfs.init()
 
