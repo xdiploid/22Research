@@ -593,7 +593,7 @@ try:
     image_data = (image_data.reshape(1, -1).astype(np.float32) - 127.5) / 127.5
 except Exception as e:
     print(str(e))
-model = Model.load("C:\\Users\\Kiwi\\Downloads\\catsdogs\\PetImages")
+model = Model.load("C:/Users/Kiwi/Downloads/catsdogs/PetImages")
 confidences = model.predict(image_data)
 predictions = model.output_layer_activation.predictions(confidences)
 prediction = fashion_mnist_labels[predictions[0]]
