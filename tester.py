@@ -6,7 +6,6 @@ import pickle
 import copy
 import cv2
 
-
 nnfs.init()
 
 class Layer_Dense:
