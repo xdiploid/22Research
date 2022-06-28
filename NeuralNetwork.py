@@ -1,12 +1,9 @@
-from tkinter import Y
 import numpy as np
 import nnfs
 import os
-import urllib
 import pickle
 import copy
 import cv2
-
 
 nnfs.init()
 
@@ -430,7 +427,7 @@ class Model:
                 for step in range(train_steps):
                     if batch_size is not None:
                         batch_X = X
-                        batch_y = Y
+                        batch_y = y
                     else:
                         batch_X = X[step*batch_size:(step+1)*batch_size]
                         batch_y = y[step*batch_size:(step+1)*batch_size]
@@ -566,7 +563,7 @@ def load_mnist_dataset(dataset, path):
             image = cv2.imread(os.path.join(path, dataset, label, file), cv2.IMREAD_UNCHANGED)
             X.append(image)
             y.append(label)
-    return np.array(X), np.array(y).astype('unit8')
+    return np.array(X), np.array(y).astype('uint8')
 
 def create_data_mnist(path):
     X, y = load_mnist_dataset('train', path)
@@ -598,6 +595,7 @@ confidences = model.predict(image_data)
 predictions = model.output_layer_activation.predictions(confidences)
 prediction = fashion_mnist_labels[predictions[0]]
 print(prediction)
+
 
 
 
