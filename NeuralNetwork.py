@@ -4,6 +4,9 @@ import os
 import pickle
 import copy
 import cv2
+import glob
+import pathlib
+from pathlib import Path
 
 nnfs.init()
 
@@ -418,14 +421,14 @@ class Model:
             train_steps = 1
             if batch_size is not None:
                 train_steps = len(X) // batch_size
-                if train_steps * batch_size < len(X):
+                if train_steps * batch_size // len(X):
                     train_steps += 1
             for epoch in range(1, epochs+1):
                 print(f'epoch: {epoch}')
                 self.loss.new_pass()
                 self.accuracy.new_pass()
                 for step in range(train_steps):
-                    if batch_size is not None:
+                    if batch_size is None:
                         batch_X = X
                         batch_y = y
                     else:
@@ -448,17 +451,82 @@ class Model:
                               f'data_loss: {data_loss:.3f}, ' + 
                               f'reg_loss: {regularization_loss:.3f}), ' + 
                               f'lr: {self.optimizer.current_learning_rate}')
-                    epoch_data_loss, epoch_regularization_loss = self.loss.calculate_accumulated(include_regularzation=True)
-                    epoch_loss = epoch_data_loss + epoch_regularization_loss
-                    epoch_accuracy = self.accuracy.calculate_accumulated()
-                    print(f'training, ' + 
-                          f'acc: {epoch_accuracy:.3f}, ' + 
-                          f'loss: {epoch_loss:.3f} (' + 
-                          f'data_loss: {epoch_data_loss:.3f}, ' + 
-                          f'reg_loss: {epoch_regularization_loss:.3f}), ' + 
-                          f'lr: {self.optimizer.current_learning_rate}')
-                    if validation_data is not None:
-                        self.evaluate(*validation_data, batch_size=batch_size)
+                epoch_data_loss, epoch_regularization_loss = self.loss.calculate_accumulated(include_regularization=True)
+                epoch_loss = epoch_data_loss + epoch_regularization_loss
+                epoch_accuracy = self.accuracy.calculate_accumulated()
+                print(f'training, ' + 
+                      f'acc: {epoch_accuracy:.3f}, ' + 
+                      f'loss: {epoch_loss:.3f} (' + 
+                      f'data_loss: {epoch_data_loss:.3f}, ' + 
+                      f'reg_loss: {epoch_regularization_loss:.3f}), ' + 
+                      f'lr: {self.optimizer.current_learning_rate}')
+                if validation_data is not None:
+                    self.evaluate(*validation_data, batch_size=batch_size)
+                    # self.loss.new_pass()
+                    # self.accuracy.new_pass()
+                    # for step in range(validation_steps):
+                    #     if batch_size is not None:
+                    #         batch_X = X_val
+                    #         batch_y = y_val
+                    #     else:
+                    #         batch_X = X_val[step*batch_size:(step+1)*batch_size]
+                    #         batch_y = y_val[step*batch_size:(step+1)*batch_size]
+                    #     output = self.forward(batch_X, training=False)
+                    #     self.loss.calculate(output, batch_y)
+                    #     predictions = self.output_layer_activation.predictions(output) 
+                    #     self.accuracy.calculate(predictions, batch_y)
+                    # validation_loss = self.loss.calculate_accumulated()
+                    # validation_accuracy = self.accuracy.calculate_accumulated()
+                    # print(f'validation, ' + 
+                    #       f'acc: {validation_accuracy:.3f}, ' + 
+                    #       f'loss: {validation_loss:.3f}')
+
+
+
+
+            # if batch_size is not None:
+            #     train_steps = len(X) // batch_size
+            #     if train_steps * batch_size < len(X):
+            #         train_steps += 1
+            # for epoch in range(1, epochs+1):
+            #     print(f'epoch: {epoch}')
+            #     self.loss.new_pass()
+            #     self.accuracy.new_pass()
+            #     for step in range(train_steps):
+            #         if batch_size is not None:
+            #             batch_X = X
+            #             batch_y = y
+            #         else:
+            #             batch_X = X[step*batch_size:(step+1)*batch_size]
+            #             batch_y = y[step*batch_size:(step+1)*batch_size]
+            #         output = self.forward(batch_X, training=True)
+            #         data_loss, regularization_loss = self.loss.calculate(output, batch_y, include_regularization=True)
+            #         loss = data_loss + regularization_loss
+            #         predictions = self.output_layer_activation.predictions(output)
+            #         accuracy = self.accuracy.calculate(predictions, batch_y)
+            #         self.backward(output, batch_y)
+            #         self.optimizer.pre_update_params()
+            #         for layer in self.trainable_layers:
+            #             self.optimizer.update_params(layer)
+            #         self.optimizer.post_update_params()
+            #         if not step % print_every or step == train_steps - 1:
+            #             print(f'step: {step}, ' + 
+            #                   f'acc: {accuracy:.3f}, ' + 
+            #                   f'loss: {loss:.3f} (' + 
+            #                   f'data_loss: {data_loss:.3f}, ' + 
+            #                   f'reg_loss: {regularization_loss:.3f}), ' + 
+            #                   f'lr: {self.optimizer.current_learning_rate}')
+            #         epoch_data_loss, epoch_regularization_loss = self.loss.calculate_accumulated(include_regularization=True)
+            #         epoch_loss = epoch_data_loss + epoch_regularization_loss
+            #         epoch_accuracy = self.accuracy.calculate_accumulated()
+            #         print(f'training, ' + 
+            #               f'acc: {epoch_accuracy:.3f}, ' + 
+            #               f'loss: {epoch_loss:.3f} (' + 
+            #               f'data_loss: {epoch_data_loss:.3f}, ' + 
+            #               f'reg_loss: {epoch_regularization_loss:.3f}), ' + 
+            #               f'lr: {self.optimizer.current_learning_rate}')
+            #         if validation_data is not None:
+            #             self.evaluate(*validation_data, batch_size=batch_size)
 
         def evaluate(self, X_val, y_val, *, batch_size=None):
             validation_steps = 1
@@ -486,14 +554,14 @@ class Model:
                   f'loss: {validation_loss:.3f}')
         
         def predict(self, X, *, batch_size=None):
-            prediction_steps = 1
+            predictions_steps = 1
             if batch_size is not None:
                 predictions_steps = len(X) // batch_size
                 if predictions_steps * batch_size < len(X):
                     predictions_steps += 1
             output = []
             for step in range(predictions_steps):
-                if batch_size is not None:
+                if batch_size is None:
                     batch_X = X
                 else:
                     batch_X = X[step*batch_size:(step+1)*batch_size]
@@ -582,19 +650,53 @@ fashion_mnist_labels = {
     8: 'Bag', 
     9: 'Ankle boot'
 }
-           
-try:            
-    image_data = cv2.imread('pants.png', cv2.IMREAD_GRAYSCALE)
+model = Model.load('fashion_mnist.model')
+# try:
+for images in os.listdir("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\"):
+    
+    # image_data = cv2.imread('C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\filename', cv2.IMREAD_GRAYSCALE)
+    image_data = cv2.imread("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\" + images, cv2.IMREAD_GRAYSCALE)
     image_data = cv2.resize(image_data, (28, 28))
     image_data = 255 - image_data
     image_data = (image_data.reshape(1, -1).astype(np.float32) - 127.5) / 127.5
-except Exception as e:
-    print(str(e))
-model = Model.load("C:/Users/Kiwi/Downloads/catsdogs/PetImages")
-confidences = model.predict(image_data)
-predictions = model.output_layer_activation.predictions(confidences)
-prediction = fashion_mnist_labels[predictions[0]]
-print(prediction)
+    # except Exception as e:
+    #     print(str(e))
+
+    confidences = model.predict(image_data)
+    predictions = model.output_layer_activation.predictions(confidences)
+    prediction = fashion_mnist_labels[predictions[0]]
+    print(prediction)
+    print(model.get_parameters())
+    # if (("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\" + images).samefile("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\0010.png")):
+    #     break
+    if (Path("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\" + images).samefile("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\train\\0\\0010.png")):
+        break
+
+# try:            
+#     image_data = cv2.imread('pants.png', cv2.IMREAD_GRAYSCALE)
+#     image_data = cv2.resize(image_data, (28, 28))
+#     image_data = 255 - image_data
+#     image_data = (image_data.reshape(1, -1).astype(np.float32) - 127.5) / 127.5
+# except Exception as e:
+#     print(str(e))
+# model = Model.load("C:/Users/Kiwi/Downloads/catsdogs/PetImages")
+# confidences = model.predict(image_data)
+# predictions = model.output_layer_activation.predictions(confidences)
+# prediction = fashion_mnist_labels[predictions[0]]
+# print(prediction)
+
+# X, y, X_test, y_test = create_data_mnist('fashion_mnist_images')
+# keys = np.array(range(X.shape[0]))
+# np.random.shuffle(keys)
+# X = X[keys]
+# y = y[keys]
+# X = (X.reshape(X.shape[0], -1).astype(np.float32) - 127.5) / 127.5
+# X_test = (X_test.reshape(X_test.shape[0], -1).astype(np.float32) - 127.5) / 127.5
+
+# model = Model.load('fashion_mnist.model')
+# model.evaluate(X_test, y_test)
+
+
 
 
 

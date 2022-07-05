@@ -428,7 +428,7 @@ class Model:
                 for step in range(train_steps):
                     if batch_size is not None:
                         batch_X = X
-                        batch_y = Y
+                        batch_y = y
                     else:
                         batch_X = X[step*batch_size:(step+1)*batch_size]
                         batch_y = y[step*batch_size:(step+1)*batch_size]
