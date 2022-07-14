@@ -662,7 +662,8 @@ for images in os.listdir("C:\\Users\\Kiwi\\22Research\\fashion_mnist_images\\tra
     # except Exception as e:
     #     print(str(e))
 
-    confidences = model.predict(image_data)
+    # confidences = model.predict(image_data)
+    confidences = model.train()
     predictions = model.output_layer_activation.predictions(confidences)
     prediction = fashion_mnist_labels[predictions[0]]
     print(prediction)
